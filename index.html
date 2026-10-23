@@ -37,7 +37,10 @@ nav button[aria-pressed="true"]{color:var(--fg);border-color:var(--fg)}
 .card:hover .thumb video.on{opacity:1}
 .card:hover .thumb img,.card:hover .thumb .ph{transform:scale(1.04)}
 .meta{display:flex;justify-content:space-between;gap:12px;padding:14px 0 0;font-size:.95rem}
-.meta span:last-child{color:var(--mute)}
+.meta .yr{color:var(--mute)}
+.ttl{display:flex;align-items:center;gap:10px;min-width:0}
+.end{display:flex;align-items:center;gap:10px;flex:none}
+.tag{flex:none;color:var(--fg);border:1px solid var(--fg);border-radius:999px;padding:2px 8px;font-size:.68rem;font-weight:500;letter-spacing:.08em;text-transform:uppercase;line-height:1.4}
 .hidden{display:none}
 
 footer{margin-top:clamp(64px,12vw,160px);padding-top:20px;border-top:1px solid var(--line);display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px;color:var(--mute);font-size:.9rem}
@@ -49,7 +52,7 @@ dialog::backdrop{background:rgba(0,0,0,.55);-webkit-backdrop-filter:blur(18px);b
 .player{aspect-ratio:16/9;background:#000;width:100%}
 .player video,.player iframe{width:100%;height:100%;border:0;display:block}
 .info{display:flex;justify-content:space-between;align-items:flex-start;gap:20px;padding:18px 22px 22px;flex-wrap:wrap}
-.info h2{font-weight:600;font-size:1.3rem}
+.info h2{font-weight:600;font-size:1.3rem;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
 .info p{color:var(--mute);max-width:60ch;line-height:1.5;margin-top:6px}
 .close{background:none;border:1px solid var(--line);color:var(--fg);font:inherit;padding:8px 16px;cursor:pointer}
 .close:hover{border-color:var(--fg)}
@@ -92,13 +95,14 @@ dialog::backdrop{background:rgba(0,0,0,.55);-webkit-backdrop-filter:blur(18px);b
    cover    : image de couverture (ex. "img/projet1.jpg") — optionnel
    preview  : courte vidéo muette jouée au survol (ex. "video/projet1-preview.mp4") — optionnel
    video    : lien YouTube ou Vimeo, OU fichier local (ex. "video/projet1.mp4")
+   tag      : étiquette verte optionnelle à droite du titre (ex. "New") ; plusieurs : ["New","Music"]
    color    : couleur du placeholder si pas de cover
 ======================================================================== */
 const PROJECTS = [
   {title:"Directorate Novitiate",   year:2025, category:"Video games", desc:"Technical sound designer & music composer at DOKI DOKI for this game",cover: "Riftaudio_Website/img:/Directorate_Novitiate_Cover.jpg", video:"https://www.youtube.com/watch?v=E3ucnmZaJm0", color:"#2b2b3a"},
   {title:"Fimo AI", year:2026, category:"Ads/Branding",         desc:"This is an audio signature made for Fimo AI, a revolutionnary website maker",cover:"Riftaudio_Website/img:/Fimo_Cover.png" , video:"https://youtu.be/vhexJwUIx_8?si=PZAyZHFK2KF2NTWU",                   color:"#3a2b2b"},
   {title:"Projet trois",year:2025, category:"Interactive exp", desc:"Description courte du projet.", video:"https://www.youtube.com/watch?v=VOTRE_LIEN_3",                            color:"#2b3a35"},
-  {title:"Valorant",year:2024,category:"Video games", desc:"This is a sound redesign including the voice recording, the sound design and the music scoring !",cover:"Riftaudio_Website/img:/Valorant_cover.jpg", video:"https://youtu.be/ceIDa797WoI?si=5N7mWtD10SEU78GX",                            color:"#35342b"},
+  {title:"Valorant",year:2024,tag:"sound re-design",category:"Video games", desc:"This is a sound redesign including the voice recording, the sound design and the music scoring !",cover:"Riftaudio_Website/img:/Valorant_cover.jpg", video:"https://youtu.be/ceIDa797WoI?si=5N7mWtD10SEU78GX",                            color:"#35342b"},
   {title:"Projet cinq", year:2024, category:"Ads/Branding", desc:"Description courte du projet.", video:"https://www.youtube.com/watch?v=VOTRE_LIEN_5",                            color:"#2b2f3a"},
   {title:"Tocata",  year:2026, category:"Interactive exp", desc:"Sound design and music addition on the masterpiece made by Bach and with this dance video made directed by Mariana Benenge & Leo Poulain ", cover:"Riftaudio_Website/img:/projet1.jpg", video:"https://youtu.be/KZx7wax4ekA?si=Y7iR0DBrwnfH5ASy",                            color:"#322b3a"}
 ];
@@ -115,6 +119,9 @@ function embedUrl(u){
   return {type:'video',src:u};
 }
 
+const esc=t=>String(t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const tagsHtml=p=>[].concat(p.tag||[]).filter(Boolean).map(t=>`<span class="tag">${esc(t)}</span>`).join('');
+
 function render(){
   grid.innerHTML='';
   PROJECTS.forEach((p,i)=>{
@@ -123,7 +130,7 @@ function render(){
     b.setAttribute('aria-label',`Lire ${p.title}`);
     const cover=p.cover?`<img src="${p.cover}" alt="" loading="lazy">`:`<div class="ph" style="--c1:${p.color||'#222'}"></div>`;
     const prev=p.preview?`<video src="${p.preview}" muted loop playsinline preload="none"></video>`:'';
-    b.innerHTML=`<div class="thumb">${cover}${prev}</div><div class="meta"><span>${p.title}</span><span>${p.year}</span></div>`;
+    b.innerHTML=`<div class="thumb">${cover}${prev}</div><div class="meta"><span class="ttl"><span>${p.title}</span></span><span class="end">${tagsHtml(p)}<span class="yr">${p.year}</span></span></div>`;
     const v=b.querySelector('video');
     if(v){
       b.addEventListener('mouseenter',()=>{v.classList.add('on');v.play().catch(()=>{})});
@@ -178,7 +185,7 @@ function open(p){
   player.innerHTML=e.type==='iframe'
     ?`<iframe src="${e.src}" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen title="${p.title}"></iframe>`
     :`<video src="${e.src}" controls autoplay playsinline></video>`;
-  document.getElementById('mTitle').textContent=`${p.title} (${p.year})`;
+  document.getElementById('mTitle').innerHTML=`<span>${esc(p.title)} (${p.year})</span>`+tagsHtml(p);
   document.getElementById('mDesc').textContent=p.desc;
   modal.showModal();
 }
